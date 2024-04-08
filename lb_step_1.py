@@ -14,13 +14,20 @@ def run_server():
     # allow only one connection in queue on this port
     server.listen(0)                
     
-    while True:
+    # we are using try except finally clause to ensure that server is exited gracefully whenever error is encountered
+    try:        
+        while True:
 
-        client_socket, client_address = server.accept()
+            client_socket, client_address = server.accept()
 
-        print(f"Recieved Request from {client_address[0]}:{client_address[1]}")
+            print(f"Recieved Request from {client_address[0]}:{client_address[1]}")
 
-        client_socket.close()
+            client_socket.close()
+    
+    except KeyboardInterrupt():
+        print("Server closed by admin")
+    
+    finally:
         server.close()
 
 if __name__ == "__main__":
