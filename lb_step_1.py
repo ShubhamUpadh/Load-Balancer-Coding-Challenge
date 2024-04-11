@@ -31,6 +31,8 @@ def run_server():
 
             request_data = client_socket.recv(1024).decode('utf-8')
 
+            request_data = request_data[:16] + f"Recieved Request from {client_address[0]}:{client_address[1]}\n" + request_data[16:]
+
             print(request_data)
 
 
