@@ -5,36 +5,43 @@ import socket
 import sys
 import signal
 
+be_server_message = None
+
 def signal_handler(sig,frame):
     print("\nClosing the server")
     sys.exit(0)
 
 def forward_request(client_socket):
-    #print("forward request executed")
+    global be_server_message
+
+    print("forward request executed")
     try:
         backend_server_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         backend_server_socket.connect(("127.0.0.1",4000)) # this is where our backend server will be running
         print("connected to backend server")
         # forward request data to the server @ 127.0.0.1:5000
         while True:
-            print("Here1")
-            client_socket.settimeout(5)
+            print("Entering the while loop ...")
+            client_socket.settimeout(1)         # set the timeout to 1s
             try:
                 data = client_socket.recv(4096)
-                print("Here2")
+                print(f"The decode data is as {data.decode('utf-8')}")
+                print("Sent the payload to backend server")
             except socket.timeout:
                 break
             if not data:
                 break
             print(f"Forwarding request to {"127.0.0.1"}:{4000}")
             backend_server_socket.sendall(data)
+            backend_server_socket.close()
         
         # recieve response from the server and forward it to the client
         while True:
+            print("Recieving the data from backend server")
             data = backend_server_socket.recv(4096)
             if not data:
                 break
-            client_socket.sendall(data)
+            be_server_message = data
     except Exception as e:
         print(f"Error forwarding the requesting {e}")
     finally:
@@ -62,6 +69,9 @@ def run_lb_server():
     try:        
         while True:
 
+            global be_server_message
+            be_server_message = None
+
             client_socket, client_address = server.accept()
 
             print(f"Recieved Request from {client_address[0]}:{client_address[1]}")
@@ -73,7 +83,7 @@ def run_lb_server():
             print(request_data)
             
             forward_request(client_socket=client_socket)
-            print("")
+            request_data = request_data + be_server_message.decode('utf-8')
 
 
             http_response = f"HTTP/1.1 200 OK\r\nContent-Length: {len(request_data)}\r\nContent-Type: text/plain\r\n\r\n{request_data}"
