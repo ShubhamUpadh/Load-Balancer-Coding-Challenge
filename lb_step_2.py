@@ -1,10 +1,38 @@
+# We will listen for the requests on a port and then forward these requests to another server
+# In real life, this server/port handles a service 
+
 import socket
-import signal
 import sys
 
 def signal_handler(sig,frame):
     print("\nClosing the server")
     sys.exit(0)
+
+def forward_request(client_socket):
+    try:
+        backend_server_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+        backend_server_socket.bind(("127.0.0.1",5000)) # this is where our backend server will be running
+
+        # forward request data to the server @ 127.0.0.1:5000
+        while True:
+            data = client_socket.recv(4096)
+            if not data:
+                break
+            backend_server_socket.sendall(data)
+        
+        # recieve response from the server and forward it to the client
+        while True:
+            data = backend_server_socket.recv(4096)
+            if not data:
+                break
+            client_socket.sendall(data)
+    except Exception as e:
+        print(f"Error forwarding the requesting {e}")
+    finally:
+        backend_server_socket.close()
+
+
+
 
 def run_lb_server():
     #signal.signal(signal.SIGINT, signal_handler)
@@ -33,8 +61,10 @@ def run_lb_server():
 
             request_data = request_data[:16] + f"Recieved Request from {client_address[0]}:{client_address[1]}\n" + request_data[16:]
 
-            print(request_data)
-
+            #print(request_data)
+            
+            forward_request(client_socket=client_socket)
+            
 
             http_response = f"HTTP/1.1 200 OK\r\nContent-Length: {len(request_data)}\r\nContent-Type: text/plain\r\n\r\n{request_data}"
             http_response = http_response.encode('utf-8')
@@ -48,7 +78,5 @@ def run_lb_server():
     finally:
         server.close()
 
-if __name__ == "__main__":
-    run_lb_server()
 
 
