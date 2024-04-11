@@ -14,7 +14,7 @@ def signal_handler(sig,frame):
 def forward_request(client_socket):
     global be_server_message
 
-    print(type(client_socket),client_socket.__sizeof__(),client_socket)
+    #print(type(client_socket),client_socket.__sizeof__(),client_socket)
 
     print("forward request executed")
     try:
