@@ -1,6 +1,13 @@
 import socket
+import signal
+import sys
+
+def signal_handler(sig,frame):
+    print("\nClosing the server")
+    sys.exit(0)
 
 def run_server():
+    #signal.signal(signal.SIGINT, signal_handler)
     # create a socket object
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -22,9 +29,18 @@ def run_server():
 
             print(f"Recieved Request from {client_address[0]}:{client_address[1]}")
 
+            request_data = client_socket.recv(1024).decode('utf-8')
+
+            print(request_data)
+
+
+            http_response = f"HTTP/1.1 200 OK\r\nContent-Length: {len(request_data)}\r\nContent-Type: text/plain\r\n\r\n{request_data}"
+            http_response = http_response.encode('utf-8')
+            client_socket.sendall(http_response)
+
             client_socket.close()
     
-    except KeyboardInterrupt():
+    except KeyboardInterrupt:
         print("Server closed by admin")
     
     finally:
