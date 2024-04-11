@@ -14,6 +14,8 @@ def signal_handler(sig,frame):
 def forward_request(client_socket):
     global be_server_message
 
+    print(type(client_socket),client_socket.__sizeof__(),client_socket)
+
     print("forward request executed")
     try:
         backend_server_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -23,6 +25,7 @@ def forward_request(client_socket):
         while True:
             print("Entering the while loop ...")
             client_socket.settimeout(1)         # set the timeout to 1s
+
             try:
                 data = client_socket.recv(4096)
                 print(f"The decode data is as {data.decode('utf-8')}")
@@ -31,6 +34,7 @@ def forward_request(client_socket):
                 break
             if not data:
                 break
+            
             print(f"Forwarding request to {"127.0.0.1"}:{4000}")
             backend_server_socket.sendall(data)
             backend_server_socket.close()
@@ -45,9 +49,8 @@ def forward_request(client_socket):
     except Exception as e:
         print(f"Error forwarding the requesting {e}")
     finally:
+        print("Recieved the data, closing this session")
         backend_server_socket.close()
-
-
 
 
 def run_lb_server():

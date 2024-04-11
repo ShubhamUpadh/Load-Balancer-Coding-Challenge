@@ -26,6 +26,7 @@ def run_be_server():
         while True:
             client_socket, client_address = server.accept()
             print(f"Received Request from {client_address[0]}:{client_address[1]}")
+            #print(type(client_socket),client_socket.__sizeof__(),client_socket)
 
             # Add debug output
             print("Waiting to receive data from client...")
